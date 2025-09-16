@@ -1,85 +1,46 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+const router = useRouter()
+
+const logout = async () => {
+  await auth.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="min-h-screen bg-gray-50">
+    <header class="bg-white border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+          <RouterLink to="/" class="text-lg font-semibold text-gray-900">WeatherFit</RouterLink>
+          <nav class="hidden sm:flex items-center gap-4 text-gray-600">
+            <RouterLink to="/" class="hover:text-gray-900">Home</RouterLink>
+            <RouterLink to="/about" class="hover:text-gray-900">About</RouterLink>
+          </nav>
+        </div>
+        <div class="flex items-center gap-3">
+          <template v-if="auth.user">
+            <span class="text-sm text-gray-600">Hi, {{ auth.user.username }}</span>
+            <button @click="logout" class="rounded-md bg-gray-200 hover:bg-gray-300 px-3 py-1.5 text-sm">Logout</button>
+          </template>
+          <template v-else>
+            <RouterLink to="/login" class="text-sm text-indigo-600 hover:text-indigo-500">Login</RouterLink>
+            <RouterLink to="/register" class="text-sm text-indigo-600 hover:text-indigo-500">Register</RouterLink>
+          </template>
+        </div>
+      </div>
+    </header>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+    <main class="max-w-7xl mx-auto p-4">
+      <RouterView />
+    </main>
+  </div>
+  
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
 </style>
