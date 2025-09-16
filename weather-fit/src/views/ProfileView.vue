@@ -19,6 +19,7 @@ async function getWeather(e) {
   error.value = ''
   current.value = null
   place.value = null
+  recommendations.value = []
 
   if (!city.value.trim()) {
     error.value = 'Please enter a city name'

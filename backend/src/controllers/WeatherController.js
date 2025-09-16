@@ -11,7 +11,7 @@ const controller = {
             recommendations.push("It's warm outside. Light clothing is recommended.");
         }
 
-        if (humidity > 70) {
+        if (humidity > 50) {
             recommendations.push("High humidity detected. Wear breathable fabrics to stay comfortable.");
         }
 
