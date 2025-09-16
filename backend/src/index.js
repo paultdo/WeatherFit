@@ -3,6 +3,8 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import userRoute from './routes/User.js';
+import weatherRoute from './routes/Weather.js';
 
 // Load env for session secret
 const __filename = fileURLToPath(import.meta.url);
@@ -11,6 +13,14 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
 const port = 3000;
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  // res.setHeader('Access-Control-Allow-Origin', '*'); 
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  next();
+});
 
 app.use(express.json());
 app.use(
@@ -26,8 +36,10 @@ app.use(
   })
 );
 
-import userRoute from './routes/User.js';
+
 app.use('/api/users', userRoute);
+app.use('/api/weather', weatherRoute);
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

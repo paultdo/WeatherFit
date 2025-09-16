@@ -19,7 +19,7 @@ const logout = async () => {
           <RouterLink to="/" class="text-lg font-semibold text-gray-900">WeatherFit</RouterLink>
           <nav class="hidden sm:flex items-center gap-4 text-gray-600">
             <RouterLink to="/" class="hover:text-gray-900">Home</RouterLink>
-            <RouterLink to="/about" class="hover:text-gray-900">About</RouterLink>
+            <RouterLink to="/profile" class="hover:text-gray-900">Profile</RouterLink>
           </nav>
         </div>
         <div class="flex items-center gap-3">
