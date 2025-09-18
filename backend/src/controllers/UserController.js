@@ -1,5 +1,7 @@
-import User from "../models/User.js";
+import models from '../models/index.js';
 import bcrypt from 'bcrypt';
+
+const { User, Location } = models;
 
 const controller = {
   getUserPage: (req, res) => {

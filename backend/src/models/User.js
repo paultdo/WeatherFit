@@ -33,5 +33,9 @@ User.init(
   }
 );
 
+User.associate = (models) => {
+  User.hasMany(models.Location, { foreignKey: 'user_id' });
+}
+
 export default User;
 export { User };

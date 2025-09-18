@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/lib/api'
@@ -64,6 +64,21 @@ async function getWeather(e) {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  // Fetch user's default location
+  api.get(`locations/user/default/${auth.user?.id}`)
+    .then(response => {
+      city.value = response.data?.city || '';
+      if (city.value) {
+        getWeather();
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching default location:', error);
+    });
+});
+
 </script>
 
 <template>
