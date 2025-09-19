@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -15,6 +15,12 @@ const mode = ref('create')
 const editingId = ref(null)
 
 const form = reactive({ name: '', latitude: '', longitude: '', is_default: false, city: '' })
+
+const page = ref(1)
+const limit = ref(5)
+const totalItems = ref(0)
+
+const totalPages = computed(() => Math.ceil(totalItems.value / limit.value))
 
 function openCreateModal() {
   mode.value = 'create'
@@ -111,12 +117,25 @@ async function deleteLocation(location) {
 
 async function fetchLocations() {
   try {
-    const res = await api.get(`/locations/${auth.user?.id}`)
-    locations.value = res.data
+    const res = await api.get(`/locations/${auth.user?.id}?page=${page.value}&limit=${limit.value}`)
+    locations.value = res.data.locations
+    totalItems.value = res.data.total
   } catch (e) {
     console.error('Failed to fetch locations', e)
   }
 }
+
+watch(page, async (newPage) => {
+  if (newPage < 1) {
+     page.value = 1
+  }
+  else if (newPage > totalPages.value) {
+    page.value = totalPages.value
+  }
+  else {
+    await fetchLocations()
+  }
+})
 
 onMounted(async () => {
   await fetchLocations()
@@ -186,6 +205,25 @@ onMounted(async () => {
           No locations yet. Click "Add Location" to create one.
         </li>
       </ul>
+    </div>
+
+    <!-- pagination controls -->
+    <div class="flex items-center justify-between p-4">
+      <button
+        @click="page--"
+        :disabled="page === 1"
+        class="inline-flex items-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+      >
+        Previous
+      </button>
+      <span class="text-sm text-gray-700">Page {{ page }} of {{ totalPages }}</span>
+      <button
+        @click="page++"
+        :disabled="page === totalPages"
+        class="inline-flex items-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+      >
+        Next
+      </button>
     </div>
 
     <!-- Create/Edit Modal -->

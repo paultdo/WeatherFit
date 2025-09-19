@@ -4,11 +4,16 @@ import { Op } from 'sequelize';
 const { Location } = models;
 
 const controller = {
+    // get paginated locations for a person
     getLocationsByPerson: async (req, res) => {
         const { userId } = req.params;
+        const { page, limit = 5 } = req.query;
         try {
-            const locations = await Location.findAll({ where: { user_id: userId } });
-            res.json(locations);
+            const locations = await Location.findAll({ where: { user_id: userId }, offset: (page - 1) * limit, limit: parseInt(limit) });
+            res.json({
+                locations,
+                total: await Location.count({ where: { user_id: userId } })
+            });
         } catch (error) {
             console.error('Error fetching locations:', error);
             res.status(500).send('Internal Server Error');
