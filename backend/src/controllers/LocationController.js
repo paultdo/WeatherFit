@@ -9,6 +9,11 @@ const controller = {
         const { userId } = req.params;
         const { page, limit = 5 } = req.query;
         try {
+            // if no page or limit provided, return all locations
+            if (!page) {
+                const locations = await Location.findAll({ where: { user_id: userId } });
+                return res.json({ locations, total: locations.length });
+            }
             const locations = await Location.findAll({ where: { user_id: userId }, offset: (page - 1) * limit, limit: parseInt(limit) });
             res.json({
                 locations,

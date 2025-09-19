@@ -20,6 +20,7 @@ const logout = async () => {
           <nav class="hidden sm:flex items-center gap-4 text-gray-600">
             <RouterLink to="/" class="hover:text-gray-900">Home</RouterLink>
             <RouterLink to="/profile" class="hover:text-gray-900">Profile</RouterLink>
+            <RouterLink to="/today" class="hover:text-gray-900">Today</RouterLink>
             <RouterLink to="/locations" class="hover:text-gray-900">Locations</RouterLink>
           </nav>
         </div>

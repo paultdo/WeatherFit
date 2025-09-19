@@ -5,5 +5,6 @@ import { ensureAuthenticated } from '../../middleware/sessionAuth.js';
 const router = express.Router();
 
 router.post('/recommendation', ensureAuthenticated, controller.getRecommendation);
+router.post('/forecast', ensureAuthenticated, controller.getHourlyRecommendation);
 
 export default router;
