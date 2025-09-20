@@ -104,22 +104,23 @@ onMounted(() => {
 
         <form @submit="getWeather" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1"><strong>Default City</strong></label>
             <input
               v-model="city"
               type="text"
               placeholder="e.g., San Francisco"
               class="block w-full rounded-md px-3 py-2 bg-white text-gray-900 placeholder:text-gray-400 ring-1 ring-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"
+              disabled
             />
           </div>
-          <button
+          <!-- <button
             type="submit"
             :disabled="loading"
             class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
           >
             <span v-if="!loading">Get Weather</span>
             <span v-else>Loading...</span>
-          </button>
+          </button> -->
         </form>
 
         <p v-if="error" class="mt-3 text-sm text-red-600">{{ error }}</p>
