@@ -1,6 +1,5 @@
 import { sequelize } from "./database.js";
-import "../models/User.js";
-import "../models/Location.js";
+import models from "../models/index.js";
 
 (async () => {
     try {

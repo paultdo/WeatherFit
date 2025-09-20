@@ -1,9 +1,11 @@
 import User from './User.js';
 import Location from './Location.js';
+import ClothingItem from './ClothingItem.js';
 
 const models = {
     User,
     Location,
+    ClothingItem,
 };
 
 Object.values(models).forEach(model => {
@@ -13,4 +15,4 @@ Object.values(models).forEach(model => {
 });
 
 export default models;
-export { User, Location };
+export { User, Location, ClothingItem };
