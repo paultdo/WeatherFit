@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import userRoute from './routes/User.js';
 import weatherRoute from './routes/Weather.js';
 import locationRoute from './routes/Location.js';
+import clothingItemRoute from './routes/ClothingItem.js';
 
 // Load env for session secret
 const __filename = fileURLToPath(import.meta.url);
@@ -41,6 +42,7 @@ app.use(
 app.use('/api/users', userRoute);
 app.use('/api/weather', weatherRoute);
 app.use('/api/locations', locationRoute);
+app.use('/api/clothing-items', clothingItemRoute);
 
 
 app.listen(port, () => {

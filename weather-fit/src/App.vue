@@ -22,6 +22,7 @@ const logout = async () => {
             <RouterLink to="/profile" class="hover:text-gray-900">Profile</RouterLink>
             <RouterLink to="/today" class="hover:text-gray-900">Today</RouterLink>
             <RouterLink to="/locations" class="hover:text-gray-900">Locations</RouterLink>
+            <RouterLink to="/clothing" class="hover:text-gray-900">Clothing</RouterLink>
           </nav>
         </div>
         <div class="flex items-center gap-3">

@@ -1,30 +1,47 @@
 import models from "../models/index.js";
+import { Op } from "sequelize";
 
 const { ClothingItem } = models;
-import { Op } from 'sequelize';
+const likeOperator = ClothingItem.sequelize?.getDialect?.() === "postgres" ? Op.iLike : Op.like;
+
 const controller = {
     // get paginated clothing items for a person
     getClothingItemsByPerson: async (req, res) => {
         const { userId } = req.params;
-        const { page, limit = 10 } = req.query;
+        const { page = 1, limit = 10, search } = req.query;
+
+        const pageNumber = Number(page) || 1;
+        const pageSize = Math.min(Number(limit) || 10, 50);
 
         try {
+            const where = { user_id: userId };
 
-            if (!page) {
-                const items = await ClothingItem.findAll({ where: { user_id: userId } });
-                return res.json({ items, total: items.length });
+            if (search) {
+                const term = search.trim();
+                if (term) {
+                    const pattern = `%${term}%`;
+                    where[Op.or] = [
+                        { name: { [likeOperator]: pattern } },
+                        { category: { [likeOperator]: pattern } },
+                        { color: { [likeOperator]: pattern } },
+                        { notes: { [likeOperator]: pattern } },
+                    ];
+                }
             }
+
             const { count, rows } = await ClothingItem.findAndCountAll({
-                where: { user_id: userId },
-                limit,
-                offset: (page - 1) * limit,
+                where,
+                limit: pageSize,
+                offset: (pageNumber - 1) * pageSize,
+                order: [["createdAt", "DESC"]],
             });
 
             res.json({
                 totalItems: count,
-                totalPages: Math.ceil(count / limit),
-                currentPage: page,
+                totalPages: Math.max(Math.ceil(count / pageSize), 1),
+                currentPage: pageNumber,
                 items: rows,
+                pageSize,
             });
         } catch (error) {
             console.error("Error fetching clothing items:", error);

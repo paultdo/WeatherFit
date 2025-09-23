@@ -9,3 +9,5 @@ router.get('/:userId/:id', ensureAuthenticated, controller.getClothingItemById);
 router.post('/', ensureAuthenticated, controller.createClothingItem);
 router.put('/:id', ensureAuthenticated, controller.updateClothingItem);
 router.delete('/:id', ensureAuthenticated, controller.deleteClothingItem);
+
+export default router;
