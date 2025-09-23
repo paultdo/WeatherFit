@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.post('/recommendation', ensureAuthenticated, controller.getRecommendation);
 router.post('/forecast', ensureAuthenticated, controller.getHourlyRecommendation);
+router.post('/clothing', ensureAuthenticated, controller.getClothingRecommendation);
 
 export default router;

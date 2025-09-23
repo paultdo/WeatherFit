@@ -15,6 +15,25 @@ const changes = ref([])
 const locations = ref([]) // user's saved locations
 const selectedLocation = ref(null)
 
+const clothingOutfit = ref([])
+const clothingGaps = ref([])
+const clothingContext = ref(null)
+const clothingLoading = ref(false)
+
+const categoryLabels = {
+  top: 'Top',
+  bottom: 'Bottom',
+  outerwear: 'Outerwear',
+  footwear: 'Footwear',
+  accessory: 'Accessory',
+}
+
+const insulationLabels = {
+  light: 'Light',
+  medium: 'Medium',
+  heavy: 'Heavy',
+}
+
 async function fetchLocations() {
   try {
     const res = await api.get(`/locations/${auth.user?.id}`)
@@ -22,6 +41,28 @@ async function fetchLocations() {
   } catch (e) {
     console.error('Failed to fetch locations', e)
   }
+}
+
+function resetClothingSuggestions() {
+  clothingOutfit.value = []
+  clothingGaps.value = []
+  clothingContext.value = null
+  clothingLoading.value = false
+}
+
+function getPeakPrecipitation(hours) {
+  if (!Array.isArray(hours) || !hours.length) {
+    return null
+  }
+  const values = hours
+    .map((hour) => Number(hour.precipitation_probability))
+    .filter((value) => !Number.isNaN(value))
+
+  if (!values.length) {
+    return null
+  }
+
+  return Math.max(...values)
 }
 
 async function getWeather(e) {
@@ -33,6 +74,7 @@ async function getWeather(e) {
   recommendations.value = []
   forecast.value = []
   changes.value = []
+  resetClothingSuggestions()
 
   if (!selectedLocation.value?.city?.trim()) {
     error.value = 'Please enter a city name'
@@ -73,12 +115,38 @@ async function getWeather(e) {
     forecast.value = forecastResponse.data?.forecast || []
     changes.value = forecastResponse.data?.changes || []
 
+    clothingLoading.value = true
+    try {
+      const peakPrecip = getPeakPrecipitation(forecast.value)
+      const clothingPayload = {
+        temperature: current.value?.temperature_2m,
+        humidity: current.value?.relative_humidity_2m,
+        precipitation_chance:
+          peakPrecip ?? current.value?.precipitation_probability ?? current.value?.precipitation ?? 0,
+        wind_speed: current.value?.wind_speed_10m,
+      }
+      if (current.value?.uv_index) {
+        clothingPayload.uv_index = current.value.uv_index
+      }
+
+      const { data: clothing } = await api.post('/weather/clothing', clothingPayload)
+      clothingOutfit.value = clothing?.outfit || []
+      clothingGaps.value = clothing?.gaps || []
+      clothingContext.value = clothing?.context || null
+    } catch (clothingError) {
+      console.error('Failed to build clothing suggestions', clothingError)
+      clothingGaps.value = ['Unable to generate outfit suggestions right now.']
+    } finally {
+      clothingLoading.value = false
+    }
+
     console.log(current.value)
     console.log(forecast.value)
     console.log(recommendations.value)
     console.log(changes.value)
   } catch (e) {
     error.value = e?.response?.data?.reason || e.message || 'Failed to fetch weather'
+    resetClothingSuggestions()
   } finally {
     loading.value = false
   }
@@ -136,7 +204,7 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold mb-4">Today's Weather</h1>
           <div v-if="current" class="bg-white shadow rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-2">{{ place.name }}</h2>
-            <p class="text-gray-700 mb-1">Temperature: {{ current.temperature_2m }}°F</p>
+            <p class="text-gray-700 mb-1">Temperature: {{ current.temperature_2m }}F</p>
             <p class="text-gray-700 mb-1">Condition: {{ current.condition }}</p>
             <p class="text-gray-700">Humidity: {{ current.relative_humidity_2m }}%</p>
           </div>
@@ -154,7 +222,7 @@ onMounted(async () => {
             <div class="flex gap-4 min-w-max">
               <div v-for="hour in forecast" :key="hour.time" class="bg-gray-50 rounded-lg p-4 w-40 flex-shrink-0">
                 <div class="text-sm text-gray-500">{{ formatHourLabel(hour.time) }}</div>
-                <div class="mt-2 text-gray-700 font-medium">{{ hour.temperature_2m }}°F</div>
+                <div class="mt-2 text-gray-700 font-medium">{{ hour.temperature_2m }}F</div>
                 <div class="text-xs text-gray-600 mt-1">Humidity: {{ hour.relative_humidity_2m }}%</div>
                 <div class="text-xs text-gray-600">Precip: {{ hour.precipitation_probability }}%</div>
                 <div class="text-xs text-gray-600">Wind: {{ hour.wind_speed_10m }} mph</div>
@@ -180,6 +248,79 @@ onMounted(async () => {
               <li v-for="(recommendation, index) in recommendations" :key="`rec-${index}`">{{ recommendation }}</li>
             </ul>
           </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-semibold">Outfit Suggestions</h2>
+              <p class="text-sm text-gray-500">Based on today's weather at {{ place?.name || 'your location' }}</p>
+            </div>
+            <div class="flex flex-col items-end gap-1 text-xs text-gray-500">
+              <span v-if="clothingContext?.targetInsulation">Target insulation: {{ insulationLabels[clothingContext.targetInsulation] || clothingContext.targetInsulation }}</span>
+              <span v-if="clothingContext?.requireWaterproof">Waterproof gear strongly recommended</span>
+              <span v-else-if="clothingContext?.preferWaterproof">Consider waterproof pieces</span>
+            </div>
+          </div>
+
+          <div v-if="clothingLoading" class="text-sm text-gray-500">Building outfit suggestions...</div>
+          <template v-else>
+            <div v-if="clothingOutfit.length" class="space-y-4">
+              <div
+                v-for="item in clothingOutfit"
+                :key="item.id"
+                class="rounded-lg border border-gray-200 p-4"
+              >
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="text-lg font-medium text-gray-900">{{ item.name }}</span>
+                      <span
+                        class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200"
+                      >
+                        {{ categoryLabels[item.category] || item.category }}
+                      </span>
+                      <span
+                        class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-200"
+                      >
+                        {{ insulationLabels[item.insulation_level] || item.insulation_level }} insulation
+                      </span>
+                      <span
+                        v-if="item.optional"
+                        class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200"
+                      >
+                        Optional
+                      </span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
+                      <span v-if="item.waterproof">Waterproof</span>
+                      <span v-if="item.uv_protection">UV protection</span>
+                      <span v-if="item.formality">{{ item.formality }}</span>
+                      <span v-if="item.color">Color: {{ item.color }}</span>
+                    </div>
+                    <p v-if="item.notes" class="mt-2 text-sm text-gray-600">{{ item.notes }}</p>
+                  </div>
+                  <div v-if="item.rationale?.length" class="text-xs text-gray-500">
+                    <p class="font-medium uppercase tracking-wide text-gray-400">Why it works</p>
+                    <ul class="mt-1 list-disc pl-4 space-y-0.5">
+                      <li v-for="(reason, index) in item.rationale" :key="`reason-${item.id}-${index}`">{{ reason }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="clothingGaps.length" class="space-y-2 text-sm text-rose-600">
+              <p class="font-medium text-rose-700">What to add next</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li v-for="(gap, index) in clothingGaps" :key="`gap-${index}`">{{ gap }}</li>
+              </ul>
+            </div>
+
+            <p v-if="!clothingOutfit.length && !clothingGaps.length" class="text-sm text-gray-500">
+              Save clothing items in your closet to get tailored outfit ideas.
+            </p>
+          </template>
         </div>
       </div>
     </div>

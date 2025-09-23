@@ -1,3 +1,5 @@
+import clothingService from "../services/clothingRecommendation.js";
+
 const CURRENT_FIELDS = "temperature_2m,precipitation,wind_speed_10m,relative_humidity_2m,precipitation_probability";
 const HOURLY_FIELDS = "temperature_2m,precipitation_probability,relative_humidity_2m,wind_speed_10m";
 const HOURS_TO_ANALYZE = 12;
@@ -125,7 +127,7 @@ const summarizeForecast = (hours) => {
     if (temperatureSwing >= 12 && warmestHour && coldestHour) {
         const trend = Number(warmestHour.temperature_2m) > Number(coldestHour.temperature_2m) ? "warmer" : "cooler";
         const referenceHour = trend === "warmer" ? warmestHour : coldestHour;
-        highlights.push(`Temperatures get ${trend} near ${formatHour(referenceHour.time)} (swing of ${Math.round(temperatureSwing)}°F).`);
+        highlights.push(`Temperatures get ${trend} near ${formatHour(referenceHour.time)} (swing of ${Math.round(temperatureSwing)} F).`);
     }
 
     if (windiestHour && summary.wind_speed >= 20) {
@@ -195,6 +197,22 @@ const controller = {
         } catch (error) {
             console.error('Error fetching hourly weather:', error);
             res.status(500).json({ reason: 'Unable to fetch hourly weather information.' });
+        }
+    },
+
+    getClothingRecommendation: async (req, res) => {
+        if (!req.session?.userId) {
+            return res.status(401).json({ reason: 'Not authenticated' });
+        }
+        try {
+            const suggestions = await clothingService.buildClothingSuggestions({
+                userId: req.session.userId,
+                weather: req.body || {}
+            });
+            res.json(suggestions);
+        } catch (error) {
+            console.error('Error building clothing suggestions:', error);
+            res.status(500).json({ reason: 'Unable to build clothing suggestions right now.' });
         }
     }
 };
