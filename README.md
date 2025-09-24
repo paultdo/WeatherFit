@@ -39,8 +39,7 @@ npm install
 npm run dev      # or node src/index.js
 
 Note: Vite proxies /api to the backend. If you deploy separately, update src/lib/api.js accordingly.
-
----
+```
 
 ### Frontend Setup
 ```bash
