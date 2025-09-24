@@ -16,9 +16,8 @@ WeatherFit is a full-stack weather concierge that blends real-time forecasts wit
 | Layer      | Technology |
 |------------|------------|
 | Frontend   | Vue 3 (Composition API), Vite, Pinia, Vue Router, Axios |
-| Styling    | Tailwind-style utility classes (customised)            |
 | Backend    | Node.js, Express, express-session, Sequelize ORM       |
-| Database   | PostgreSQL (any Sequelize-compatible SQL engine)       |
+| Database   | MySQL (any Sequelize-compatible SQL engine)       |
 | External   | Open-Meteo Geocoding & Forecast APIs                   |
 
 ---
