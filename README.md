@@ -28,7 +28,6 @@ WeatherFit is a full-stack web app that finds forecast details and picks an outf
 - Node.js 18+
 - npm 9+
 - MySQL (or equivalent configured in Sequelize)
-- `.env` file in `backend/` with session secret + DB credentials
 
 ### Backend Setup
 ```bash
