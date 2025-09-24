@@ -1,6 +1,6 @@
 # WeatherFit
 
-WeatherFit is a full-stack weather concierge that blends real-time forecasts with your personal wardrobe.
+WeatherFit is a full-stack web app that finds forecast details and picks an outfit for you.
 
 ---
 
