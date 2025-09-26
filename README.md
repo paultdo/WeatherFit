@@ -45,5 +45,11 @@ cd weather-fit
 npm install
 npm run dev
 
+```
+### Database
+In backend/.env, change env variables to match your database. 
+Then, run npm run sync to create database tables.
+
+
 
 
