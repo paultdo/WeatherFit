@@ -50,6 +50,9 @@ npm run dev
 In backend/.env, change env variables to match your database. 
 Then, run npm run sync to create database tables.
 
+<img width="1888" height="927" alt="image" src="https://github.com/user-attachments/assets/dbbd1a41-95ae-4521-a4bd-babec5740641" />
+
+
 
 
 
