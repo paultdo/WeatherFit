@@ -210,45 +210,6 @@ onMounted(async () => {
           </div>
           <div v-else class="text-gray-500">Loading weather data...</div>
         </div>
-      </div>
-
-      <div class="space-y-4">
-        <div v-if="forecast.length" class="bg-white shadow rounded-lg p-6">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold">Next 12 Hours</h2>
-            <span v-if="place?.timezone" class="text-xs text-gray-500 uppercase">{{ place.timezone }}</span>
-          </div>
-          <div class="mt-4 overflow-x-auto">
-            <div class="flex gap-4 min-w-max">
-              <div v-for="hour in forecast" :key="hour.time" class="bg-gray-50 rounded-lg p-4 w-40 flex-shrink-0">
-                <div class="text-sm text-gray-500">{{ formatHourLabel(hour.time) }}</div>
-                <div class="mt-2 text-gray-700 font-medium">{{ hour.temperature_2m }}F</div>
-                <div class="text-xs text-gray-600 mt-1">Humidity: {{ hour.relative_humidity_2m }}%</div>
-                <div class="text-xs text-gray-600">Precip: {{ hour.precipitation_probability }}%</div>
-                <div class="text-xs text-gray-600">Wind: {{ hour.wind_speed_10m }} mph</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-if="changes.length || recommendations.length"
-          class="bg-white shadow rounded-lg p-6 space-y-4"
-        >
-          <div v-if="changes.length">
-            <h2 class="text-xl font-semibold mb-2">Upcoming Changes</h2>
-            <ul class="space-y-1 text-gray-700">
-              <li v-for="(change, index) in changes" :key="`change-${index}`">{{ change }}</li>
-            </ul>
-          </div>
-
-          <div v-if="recommendations.length" :class="{ 'pt-4 border-t border-gray-200': changes.length }">
-            <h2 class="text-xl font-semibold mb-3">Recommendations</h2>
-            <ul class="list-disc list-inside text-gray-700 space-y-1">
-              <li v-for="(recommendation, index) in recommendations" :key="`rec-${index}`">{{ recommendation }}</li>
-            </ul>
-          </div>
-        </div>
 
         <div class="bg-white shadow rounded-lg p-6 space-y-4">
           <div class="flex items-center justify-between">
@@ -321,6 +282,45 @@ onMounted(async () => {
               Save clothing items in your closet to get tailored outfit ideas.
             </p>
           </template>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div v-if="forecast.length" class="bg-white shadow rounded-lg p-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Next 12 Hours</h2>
+            <span v-if="place?.timezone" class="text-xs text-gray-500 uppercase">{{ place.timezone }}</span>
+          </div>
+          <div class="mt-4 overflow-x-auto">
+            <div class="flex gap-4 min-w-max">
+              <div v-for="hour in forecast" :key="hour.time" class="bg-gray-50 rounded-lg p-4 w-40 flex-shrink-0">
+                <div class="text-sm text-gray-500">{{ formatHourLabel(hour.time) }}</div>
+                <div class="mt-2 text-gray-700 font-medium">{{ hour.temperature_2m }}F</div>
+                <div class="text-xs text-gray-600 mt-1">Humidity: {{ hour.relative_humidity_2m }}%</div>
+                <div class="text-xs text-gray-600">Precip: {{ hour.precipitation_probability }}%</div>
+                <div class="text-xs text-gray-600">Wind: {{ hour.wind_speed_10m }} mph</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="changes.length || recommendations.length"
+          class="bg-white shadow rounded-lg p-6 space-y-4"
+        >
+          <div v-if="changes.length">
+            <h2 class="text-xl font-semibold mb-2">Upcoming Changes</h2>
+            <ul class="space-y-1 text-gray-700">
+              <li v-for="(change, index) in changes" :key="`change-${index}`">{{ change }}</li>
+            </ul>
+          </div>
+
+          <div v-if="recommendations.length" :class="{ 'pt-4 border-t border-gray-200': changes.length }">
+            <h2 class="text-xl font-semibold mb-3">Recommendations</h2>
+            <ul class="list-disc list-inside text-gray-700 space-y-1">
+              <li v-for="(recommendation, index) in recommendations" :key="`rec-${index}`">{{ recommendation }}</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
