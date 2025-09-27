@@ -4,6 +4,11 @@ const CURRENT_FIELDS = "temperature_2m,precipitation,wind_speed_10m,relative_hum
 const HOURLY_FIELDS = "temperature_2m,precipitation_probability,relative_humidity_2m,wind_speed_10m";
 const HOURS_TO_ANALYZE = 12;
 
+/**
+ * Generates weather advice from conditions.
+ * @param {{temperature: number, humidity: number, precipitation_chance: number, wind_speed: number}} params - Simplified weather metrics.
+ * @returns {string[]} Plain-language recommendations to show end users.
+ */
 const buildRecommendations = ({ temperature, humidity, precipitation_chance, wind_speed }) => {
     let recommendations = [];
 
@@ -26,6 +31,11 @@ const buildRecommendations = ({ temperature, humidity, precipitation_chance, win
     return recommendations;
 };
 
+/**
+ * Converts parallel arrays from Open-Meteo into per-hour objects for easier processing.
+ * @param {{ time?: string[], temperature_2m?: number[], precipitation_probability?: number[], relative_humidity_2m?: number[], wind_speed_10m?: number[] }} hourly - Raw hourly forecast payload.
+ * @returns {Array<{time: string, temperature_2m?: number, precipitation_probability?: number, relative_humidity_2m?: number, wind_speed_10m?: number}>} Hourly objects keyed by timestamp.
+ */
 const mapHourlyForecast = (hourly) => {
     if (!hourly || !Array.isArray(hourly.time)) {
         return [];
@@ -44,6 +54,11 @@ const mapHourlyForecast = (hourly) => {
     return entries;
 };
 
+/**
+ * Picks the next N hours of data, prioritizing future timestamps but falling back to the latest history.
+ * @param {Array<{time: string}>} hours - Hourly entries derived from the forecast.
+ * @returns {Array<{time: string}>} Hour blocks to analyze when generating advice.
+ */
 const selectUpcomingHours = (hours) => {
     if (!hours.length) {
         return [];
@@ -67,6 +82,11 @@ const selectUpcomingHours = (hours) => {
     return upcoming.concat(hours.slice(upcoming.length, upcoming.length + remaining));
 };
 
+/**
+ * Formats a timestamp into a user-friendly hour/minute string, falling back on failure.
+ * @param {string} value - ISO timestamp representing the forecast hour.
+ * @returns {string} Formatted label suitable for UI messaging.
+ */
 const formatHour = (value) => {
     try {
         return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(value));
@@ -76,6 +96,11 @@ const formatHour = (value) => {
     }
 };
 
+/**
+ * Summarizes the selected hours to find key weather highlights and aggregate metrics.
+ * @param {Array<{time: string, temperature_2m?: number, precipitation_probability?: number, relative_humidity_2m?: number, wind_speed_10m?: number}>} hours - Hourly forecast window.
+ * @returns {{summary: {temperature: number, humidity: number, precipitation_chance: number, wind_speed: number}, highlights: string[]}} Summary numbers and callouts.
+ */
 const summarizeForecast = (hours) => {
     if (!hours.length) {
         return {
@@ -141,13 +166,28 @@ const summarizeForecast = (hours) => {
     return { summary, highlights };
 };
 
+/**
+ * Weather-focused controller with handlers for direct, hourly, and wardrobe recommendations.
+ */
 const controller = {
+    /**
+     * Returns quick recommendations based on simple weather values provided by the client.
+     * @param {import('express').Request} req - Express request carrying weather metrics.
+     * @param {import('express').Response} res - Express response used to return advice.
+     * @returns {void}
+     */
     getRecommendation: (req, res) => {
         const { temperature, humidity, precipitation_chance, wind_speed } = req.body;
         let recommendations = buildRecommendations({ temperature, humidity, precipitation_chance, wind_speed });
         res.json({ recommendations });
     },
 
+    /**
+     * Fetches an hourly forecast from Open-Meteo, summarizes trends, and returns tailored advice.
+     * @param {import('express').Request} req - Express request containing location coordinates and optional timezone.
+     * @param {import('express').Response} res - Express response that receives the forecast and recommendations.
+     * @returns {Promise<void>}
+     */
     getHourlyRecommendation: async (req, res) => {
         const { latitude, longitude, timezone } = req.body;
         const latitudeValue = Number(latitude);
@@ -200,6 +240,12 @@ const controller = {
         }
     },
 
+    /**
+     * Builds wardrobe suggestions for the authenticated user using the clothing recommendation service.
+     * @param {import('express').Request} req - Express request holding weather context and session data.
+     * @param {import('express').Response} res - Express response where clothing suggestions are returned.
+     * @returns {Promise<void>}
+     */
     getClothingRecommendation: async (req, res) => {
         if (!req.session?.userId) {
             return res.status(401).json({ reason: 'Not authenticated' });
@@ -218,3 +264,4 @@ const controller = {
 };
 
 export default controller;
+
