@@ -11,6 +11,11 @@ const TEMPERATURE_BANDS = [
 const REQUIRED_CATEGORIES = ["top", "bottom"];
 const OPTIONAL_CATEGORIES = ["outerwear", "footwear", "accessory"];
 
+/**
+ * Determines the insulation level to target based on the temperature reading.
+ * @param {number} temperature - Degrees Fahrenheit describing current conditions.
+ * @returns {'light'|'medium'|'heavy'} Suggested insulation weight for outfit building.
+ */
 const pickInsulationLevel = (temperature) => {
     if (typeof temperature !== "number" || Number.isNaN(temperature)) {
         return "light";
@@ -19,6 +24,11 @@ const pickInsulationLevel = (temperature) => {
     return match ? match.insulation : "light";
 };
 
+/**
+ * Groups wardrobe items by category so outfit assembly can access them quickly.
+ * @param {object[]} items - Wardrobe items retrieved for the user.
+ * @returns {Record<string, object[]>} Items keyed by category.
+ */
 const summarizeWardrobe = (items) => {
     return items.reduce((acc, item) => {
         if (!acc[item.category]) {
@@ -29,6 +39,12 @@ const summarizeWardrobe = (items) => {
     }, {});
 };
 
+/**
+ * Scores a clothing item against the selection criteria to find the best match.
+ * @param {object} item - Clothing item under evaluation.
+ * @param {object} criteria - Selection rules derived from the weather needs.
+ * @returns {{score: number, rationale: string[]}} Score and reasoning for the item.
+ */
 const computeScore = (item, criteria) => {
     let score = 0;
     const rationale = [];
@@ -62,10 +78,22 @@ const computeScore = (item, criteria) => {
     return { score, rationale };
 };
 
+/**
+ * Formats a human-readable message describing when category filters were relaxed.
+ * @param {string} category - Clothing category being evaluated.
+ * @param {string} reason - Explanation for the relaxation.
+ * @param {string} [notes] - Optional additional context to append.
+ * @returns {string} Gap message surfaced to the user.
+ */
 const relaxFilters = (category, reason, notes) => {
     return `${category.charAt(0).toUpperCase()}${category.slice(1)}: ${reason}${notes ? ` (${notes})` : ""}`;
 };
 
+/**
+ * Derives clothing needs and preferences from the provided weather snapshot.
+ * @param {object} [weather={}] - Latest weather metrics available for the user.
+ * @returns {object} Normalized needs flags that downstream logic can consume.
+ */
 const determineNeeds = (weather = {}) => {
     const temperature = Number(weather.temperature ?? weather.temperature_2m);
     const precipitationChance = Number(weather.precipitation_chance ?? weather.precipitation_probability ?? 0);
@@ -90,6 +118,12 @@ const determineNeeds = (weather = {}) => {
     };
 };
 
+/**
+ * Builds selection criteria for a category using the derived weather needs.
+ * @param {string} category - Wardrobe category under consideration.
+ * @param {object} needs - Output from determineNeeds describing weather constraints.
+ * @returns {object} Criteria object that guides filtering and scoring.
+ */
 const buildCategoryCriteria = (category, needs) => {
     const criteria = {
         mustMatch: [],
@@ -134,6 +168,13 @@ const buildCategoryCriteria = (category, needs) => {
     return criteria;
 };
 
+/**
+ * Applies mandatory criteria to narrow the candidate items for a category.
+ * @param {object[]} items - Wardrobe items belonging to the given category.
+ * @param {string} category - Category label used for generated messaging.
+ * @param {object} criteria - Criteria produced by buildCategoryCriteria.
+ * @returns {{candidates: object[], gaps: string[], relaxed: boolean}} Filter results and any gaps.
+ */
 const filterCandidates = (items, category, criteria) => {
     if (!items || !items.length) {
         return { candidates: [], gaps: [`No ${category} items saved`], relaxed: false };
@@ -156,6 +197,13 @@ const filterCandidates = (items, category, criteria) => {
     return { candidates, gaps, relaxed };
 };
 
+/**
+ * Chooses the highest scoring item for a category and records any gap messages.
+ * @param {object[]} items - Candidate items considered for the category.
+ * @param {string} category - Category being resolved for the outfit.
+ * @param {object} criteria - Criteria guiding scoring and filter relaxations.
+ * @returns {{item: object|null, gaps: string[]}} Selected item and supporting gap messages.
+ */
 const chooseTopItem = (items, category, criteria) => {
     const { candidates, gaps, relaxed } = filterCandidates(items, category, criteria);
     if (!candidates.length) {
@@ -192,6 +240,11 @@ const chooseTopItem = (items, category, criteria) => {
     };
 };
 
+/**
+ * Generates a weather-aware outfit recommendation for the supplied user.
+ * @param {{userId: number|string, weather: object}} params - User context and weather input.
+ * @returns {Promise<{outfit: object[], gaps: string[], context: object}>} Outfit suggestions plus context.
+ */
 const buildClothingSuggestions = async ({ userId, weather }) => {
     const wardrobe = await ClothingItem.findAll({ where: { user_id: userId } });
     const grouped = summarizeWardrobe(wardrobe);
